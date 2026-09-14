@@ -1,0 +1,20 @@
+package miProyecto.moduloP;
+
+// 1. Error en importación: Ruta incompleta o token no esperado
+#include 
+
+// 2. Error en paquete o importación: Falta de punto y coma
+using namespace std
+
+// 3. Error en la clase principal: Falta del nombre de la clase o llaves incorrectas
+class {
+private:
+    int totalTokens = 100;
+public:
+    void ejecutar() {
+        // Código interno
+    }
+}
+
+// 4. Error estructural o fatal / recuperable adicional (fuera de orden o token inválido)
+@ $ ~
