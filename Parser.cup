@@ -1,0 +1,113 @@
+/*
+ * INTEGRANTES:
+ * 1. Cancelada de la O Gerardo Alexander
+ * 2. Castellanos Hernández Alan
+ * 3. Lara Jiménez Pablo César
+ * 4. Medina Robledo Brandon Ernie
+ */
+
+import java_cup.runtime.*;
+
+parser code {:
+    public void report_error(String message, Object info) {
+        StringBuilder m = new StringBuilder(">>> ERROR SINT\u00C1CTICO");
+        if (info instanceof java_cup.runtime.Symbol) {
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+            if (s.left >= 0) {
+                m.append(" en l\u00EDnea ").append(s.left);
+                if (s.right >= 0)
+                    m.append(", columna ").append(s.right);
+            }
+        }
+        m.append(" : ").append(message);
+        System.err.println(m);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        report_error("Elemento o token no esperado ('" + cur_token.value + "')", cur_token);
+    }
+:};
+
+/* TERMINALES DE C++ Y ESTRUCTURALES */
+terminal DIRECTIVA, IF, ELSE, WHILE, FOR, DO, RETURN, INT, FLOAT, DOUBLE, CHAR, BOOL, VOID, CLASS, STRUCT, PUBLIC, PRIVATE, USING, NAMESPACE;
+terminal ID, ENTERO, FLOTANTE, CADENA, CARACTER;
+terminal OP_SUMA, OP_RESTA, OP_MULT, OP_DIV, OP_MOD, OP_INC, OP_DEC;
+terminal OP_ASIG, OP_ASIG_SUMA, OP_ASIG_RESTA, OP_ASIG_MULT, OP_ASIG_DIV;
+terminal OP_IGUAL, OP_DISTINTO, OP_MENOR, OP_MAYOR, OP_MENOR_IGUAL, OP_MAYOR_IGUAL;
+terminal OP_AND, OP_OR, OP_NOT, OP_ACCESO;
+terminal PAR_A, PAR_C, LLAVE_A, LLAVE_C, CORCH_A, CORCH_C, PUNTO_COMA, COMA, DOS_PUNTOS;
+terminal ERROR_LEXICO;
+terminal PACKAGE, PUNTO;
+
+/* NO TERMINALES */
+non terminal archivo, paquete, ruta_paquete, importaciones, importacion, clase_principal, cuerpo_clase, bloque, elemento_interno, cola_errores, error_final;
+
+start with archivo;
+
+/* REGLAS GRAMATICALES */
+
+// 1. Estructura general
+archivo ::= paquete importaciones clase_principal cola_errores
+            {: System.out.println("Regla reconocida: <archivo>"); :}
+          | importaciones clase_principal cola_errores
+            {: System.out.println("Regla reconocida: <archivo>"); :}
+;
+
+// 2. Paquete (opcional)
+paquete ::= PACKAGE ID PUNTO_COMA
+            {: System.out.println("Regla reconocida: <paquete> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+          | PACKAGE ID PUNTO ruta_paquete PUNTO_COMA
+            {: System.out.println("Regla reconocida: <paquete> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+;
+
+ruta_paquete ::= ID PUNTO ruta_paquete
+               | ID
+;
+
+// 3. Importaciones / Directivas
+importaciones ::= importaciones importacion
+                | /* vac\u00EDo */
+;
+
+importacion ::= DIRECTIVA
+            {: System.out.println("Regla reconocida: <importacion> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+          | DIRECTIVA OP_MENOR ID OP_MAYOR
+            {: System.out.println("Regla reconocida: <importacion> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+          | USING NAMESPACE ID PUNTO_COMA
+            {: System.out.println("Regla reconocida: <importacion> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+;
+
+// 4. Clase Principal (se delimita estrictamente antes del opcional ';')
+clase_principal ::= CLASS ID LLAVE_A cuerpo_clase LLAVE_C
+            {: System.out.println("Regla reconocida: <clase_principal> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+          | CLASS ID LLAVE_A cuerpo_clase LLAVE_C PUNTO_COMA
+            {: System.out.println("Regla reconocida: <clase_principal> (L\u00EDnea " + ((Symbol)CUP$Parser$stack.peek()).left + ")"); :}
+;
+
+// Manejo del contenido interno y bloques anidados { ... }
+cuerpo_clase ::= cuerpo_clase elemento_interno
+               | cuerpo_clase bloque
+               | /* vac\u00EDo */
+;
+
+// Regla para emparejar bloques internos delimitados por { ... }
+bloque ::= LLAVE_A cuerpo_clase LLAVE_C ;
+
+// Elementos válidos dentro del cuerpo (excluye LLAVE_A y LLAVE_C porque son gestionadas por 'bloque')
+elemento_interno ::= DIRECTIVA | IF | ELSE | WHILE | FOR | DO | RETURN | INT | FLOAT | DOUBLE 
+                   | CHAR | BOOL | VOID | CLASS | STRUCT | PUBLIC | PRIVATE | USING | NAMESPACE
+                   | ID | ENTERO | FLOTANTE | CADENA | CARACTER
+                   | OP_SUMA | OP_RESTA | OP_MULT | OP_DIV | OP_MOD | OP_INC | OP_DEC
+                   | OP_ASIG | OP_ASIG_SUMA | OP_ASIG_RESTA | OP_ASIG_MULT | OP_ASIG_DIV
+                   | OP_IGUAL | OP_DISTINTO | OP_MENOR | OP_MAYOR | OP_MENOR_IGUAL | OP_MAYOR_IGUAL
+                   | OP_AND | OP_OR | OP_NOT | OP_ACCESO
+                   | PAR_A | PAR_C | CORCH_A | CORCH_C | COMA | DOS_PUNTOS | PUNTO_COMA
+                   | PACKAGE | PUNTO
+;
+
+// Tolerancia a errores léxicos o tokens extra al final del archivo
+cola_errores ::= cola_errores error_final
+               | /* vac\u00EDo */
+;
+
+error_final ::= ERROR_LEXICO | ID | ENTERO | FLOTANTE | CADENA | error ;
