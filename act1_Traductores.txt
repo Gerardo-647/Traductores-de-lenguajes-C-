@@ -1,20 +1,20 @@
 package miProyecto.moduloP;
 
-// 1. Error en importación: Ruta incompleta o token no esperado
-#include 
+#include <iostream>
+using namespace std;
 
-// 2. Error en paquete o importación: Falta de punto y coma
-using namespace std
-
-// 3. Error en la clase principal: Falta del nombre de la clase o llaves incorrectas
-class {
+class Compilador {
 private:
-    int totalTokens = 100;
+    int totalTokens = 150;
+    float version = 3.14f;
+
 public:
     void ejecutar() {
-        // Código interno
+        /* Bloque de validacion:
+           Evalua si las condiciones se cumplen */
+        if (totalTokens >= 100 && version != 0.0) {
+            string salida = "Analisis exitoso: \"C++ Lexer\"";
+            totalTokens += 1;
+        }
     }
-}
-
-// 4. Error estructural o fatal / recuperable adicional (fuera de orden o token inválido)
-@ $ ~
+};
